@@ -3,7 +3,7 @@ import React, { useState, useRef } from 'react';
 import { Upload, Music } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Song } from '../types/music';
-import { toast } from "@/components/ui/sonner";
+import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 interface MusicUploaderProps {
@@ -26,7 +26,11 @@ const MusicUploader: React.FC<MusicUploaderProps> = ({ onSongUploaded, className
     Array.from(files).forEach(async (file) => {
       // Check if it's an audio file
       if (!file.type.startsWith('audio/')) {
-        toast.error("Please upload only audio files");
+        toast({
+          title: "Invalid file type",
+          description: "Please upload only audio files",
+          variant: "destructive"
+        });
         return;
       }
 
@@ -69,10 +73,18 @@ const MusicUploader: React.FC<MusicUploaderProps> = ({ onSongUploaded, className
         
         // Add the song to the list
         onSongUploaded(newSong);
-        toast.success(`Uploaded "${title}"`);
+        toast({
+          title: "Upload successful",
+          description: `Uploaded "${title}"`,
+          variant: "default"
+        });
       } catch (error) {
         console.error("Error loading audio file:", error);
-        toast.error("Failed to load audio file");
+        toast({
+          title: "Upload failed",
+          description: "Failed to load audio file",
+          variant: "destructive"
+        });
       }
     });
   };
