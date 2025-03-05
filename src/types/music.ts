@@ -7,6 +7,7 @@ export interface Song {
   duration: number;
   coverArt: string;
   audioSrc: string;
+  isLocal?: boolean;
 }
 
 export interface PlayerState {

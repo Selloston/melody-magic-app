@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import MusicList from '../components/MusicList';
 import { Song } from '../types/music';
@@ -97,8 +97,26 @@ const albums = [
 ];
 
 const Library = () => {
+  const [songs, setSongs] = useState<Song[]>(mockSongs);
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+
+  // Load local songs from localStorage
+  useEffect(() => {
+    const savedSongs = localStorage.getItem('localSongs');
+    if (savedSongs) {
+      try {
+        const parsedSongs = JSON.parse(savedSongs);
+        // Filter out songs that might have invalid URLs (after page refresh)
+        const validSongs = parsedSongs.filter((song: Song) => 
+          !song.isLocal || (song.isLocal && song.audioSrc.startsWith('blob:'))
+        );
+        setSongs([...mockSongs, ...validSongs]);
+      } catch (error) {
+        console.error("Error loading saved songs:", error);
+      }
+    }
+  }, []);
 
   const handleSelectSong = (song: Song) => {
     if (currentSong?.id === song.id) {
@@ -123,7 +141,7 @@ const Library = () => {
           
           <TabsContent value="songs" className="space-y-4">
             <MusicList
-              songs={mockSongs}
+              songs={songs}
               currentSong={currentSong}
               isPlaying={isPlaying}
               onSelectSong={handleSelectSong}

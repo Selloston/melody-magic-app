@@ -8,6 +8,7 @@ interface SongInfoProps {
   album?: string;
   variant?: 'default' | 'compact' | 'nowPlaying';
   className?: string;
+  onClick?: () => void;
 }
 
 const SongInfo: React.FC<SongInfoProps> = ({
@@ -15,11 +16,18 @@ const SongInfo: React.FC<SongInfoProps> = ({
   artist,
   album,
   variant = 'default',
-  className
+  className,
+  onClick
 }) => {
+  const rootClassName = cn(
+    "flex flex-col overflow-hidden", 
+    onClick && "cursor-pointer",
+    className
+  );
+  
   if (variant === 'compact') {
     return (
-      <div className={cn("flex flex-col overflow-hidden", className)}>
+      <div className={rootClassName} onClick={onClick}>
         <div className="scroll-text">
           <div className="scroll-inner text-sm font-medium line-clamp-1">{title}</div>
         </div>
@@ -30,7 +38,7 @@ const SongInfo: React.FC<SongInfoProps> = ({
   
   if (variant === 'nowPlaying') {
     return (
-      <div className={cn("flex flex-col items-center text-center space-y-1", className)}>
+      <div className={cn("flex flex-col items-center text-center space-y-1", className)} onClick={onClick}>
         <h2 className="text-xl font-bold tracking-tight">{title}</h2>
         <p className="text-base text-music-muted">{artist}</p>
         {album && <p className="text-sm text-music-muted/70">{album}</p>}
@@ -39,7 +47,7 @@ const SongInfo: React.FC<SongInfoProps> = ({
   }
 
   return (
-    <div className={cn("flex flex-col overflow-hidden", className)}>
+    <div className={rootClassName} onClick={onClick}>
       <div className="scroll-text">
         <div className="scroll-inner text-base font-medium line-clamp-1">{title}</div>
       </div>

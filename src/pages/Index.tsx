@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import MusicPlayer from '../components/MusicPlayer';
 import MusicList from '../components/MusicList';
+import MusicUploader from '../components/MusicUploader';
 import { Song } from '../types/music';
 
 // Mock data - replace with real API data in a production app
@@ -82,8 +83,32 @@ const mockSongs: Song[] = [
 ];
 
 const Index = () => {
-  const [currentSong, setCurrentSong] = React.useState<Song | null>(mockSongs[0]);
-  const [isPlaying, setIsPlaying] = React.useState(false);
+  const [songs, setSongs] = useState<Song[]>(mockSongs);
+  const [currentSong, setCurrentSong] = useState<Song | null>(songs[0]);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  // Check for saved local songs in localStorage
+  useEffect(() => {
+    const savedSongs = localStorage.getItem('localSongs');
+    if (savedSongs) {
+      try {
+        const parsedSongs = JSON.parse(savedSongs);
+        // Filter out songs that might have invalid URLs (after page refresh)
+        const validSongs = parsedSongs.filter((song: Song) => 
+          !song.isLocal || (song.isLocal && song.audioSrc.startsWith('blob:'))
+        );
+        setSongs([...mockSongs, ...validSongs]);
+      } catch (error) {
+        console.error("Error loading saved songs:", error);
+      }
+    }
+  }, []);
+
+  // Save local songs to localStorage when they change
+  useEffect(() => {
+    const localSongs = songs.filter(song => song.isLocal);
+    localStorage.setItem('localSongs', JSON.stringify(localSongs));
+  }, [songs]);
 
   const handleSelectSong = (song: Song) => {
     if (currentSong?.id === song.id) {
@@ -94,6 +119,10 @@ const Index = () => {
     }
   };
 
+  const handleSongUploaded = (song: Song) => {
+    setSongs(prevSongs => [...prevSongs, song]);
+  };
+
   return (
     <Layout>
       <div className="container px-4 py-6 mx-auto">
@@ -102,21 +131,26 @@ const Index = () => {
         <section className="mb-8">
           <h2 className="text-xl font-semibold mb-4">Now Playing</h2>
           <MusicPlayer 
-            songs={mockSongs} 
+            songs={songs} 
             className="bg-music-primary/10 p-4 rounded-xl"
           />
         </section>
         
+        <section className="mb-8">
+          <h2 className="text-xl font-semibold mb-4">Upload Music</h2>
+          <MusicUploader onSongUploaded={handleSongUploaded} />
+        </section>
+        
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Recently Played</h2>
+            <h2 className="text-xl font-semibold">Your Library</h2>
             <button className="text-sm text-music-accent hover:underline">
               See All
             </button>
           </div>
           
           <MusicList 
-            songs={mockSongs} 
+            songs={songs} 
             currentSong={currentSong}
             isPlaying={isPlaying}
             onSelectSong={handleSelectSong}
